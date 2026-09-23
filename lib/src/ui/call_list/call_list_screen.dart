@@ -13,7 +13,8 @@ import '../widgets/method_chip.dart';
 import '../widgets/status_chip.dart';
 
 class CallListScreen extends StatefulWidget {
-  const CallListScreen({super.key, required this.storage, this.config, this.onBack});
+  const CallListScreen(
+      {super.key, required this.storage, this.config, this.onBack});
 
   final NetSpyStorage storage;
   final NetSpyConfig? config;
@@ -32,7 +33,8 @@ class _CallListScreenState extends State<CallListScreen> {
   /// Fallback config used only when the screen is shown without one (e.g. in
   /// isolated tests). Owned locally so it is disposed here.
   NetSpyConfig? _fallbackConfig;
-  NetSpyConfig get _config => widget.config ?? (_fallbackConfig ??= NetSpyConfig());
+  NetSpyConfig get _config =>
+      widget.config ?? (_fallbackConfig ??= NetSpyConfig());
 
   @override
   void initState() {
@@ -130,12 +132,14 @@ class _CallListScreenState extends State<CallListScreen> {
       leading: widget.onBack != null
           ? IconButton(
               icon: const Icon(Icons.close),
+              tooltip: 'Close inspector',
               onPressed: widget.onBack,
             )
           : null,
       actions: [
         IconButton(
           icon: Icon(_searching ? Icons.search_off : Icons.search),
+          tooltip: _searching ? 'Close search' : 'Search',
           onPressed: () {
             setState(() {
               _searching = !_searching;
@@ -147,17 +151,21 @@ class _CallListScreenState extends State<CallListScreen> {
         ),
         PopupMenuButton(
           icon: Icon(Icons.more_vert),
+          tooltip: 'More options',
           offset: Offset(-22, 44),
           elevation: 2,
           itemBuilder: (context) => [
             PopupMenuItem(
-              onTap: () => _config.redactSensitive.value = !_config.redactSensitive.value,
+              onTap: () => _config.redactSensitive.value =
+                  !_config.redactSensitive.value,
               child: Row(
                 children: [
                   ValueListenableBuilder<bool>(
                     valueListenable: _config.redactSensitive,
                     builder: (_, redacting, __) => Icon(
-                      redacting ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded,
+                      redacting
+                          ? Icons.check_box_rounded
+                          : Icons.check_box_outline_blank_rounded,
                       size: 18,
                       color: NetSpyColors.textSecondary,
                     ),
@@ -171,8 +179,9 @@ class _CallListScreenState extends State<CallListScreen> {
               onTap: () => ShareHelper.shareText(
                 CurlBuilder.buildAll(
                   widget.storage.calls.value,
-                  redactHeaders:
-                      _config.redactSensitive.value ? _config.sensitiveHeaders : null,
+                  redactHeaders: _config.redactSensitive.value
+                      ? _config.sensitiveHeaders
+                      : null,
                 ),
               ),
               child: Text(
@@ -274,7 +283,8 @@ class _CallListScreenState extends State<CallListScreen> {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => CallDetailScreen(call: call, config: _config),
+                        builder: (_) =>
+                            CallDetailScreen(call: call, config: _config),
                       ),
                     );
                   },

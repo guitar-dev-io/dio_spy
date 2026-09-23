@@ -131,6 +131,13 @@ class ApiService {
     return response.data;
   }
 
+  // NOTE: `password` is sent here only because this endpoint is a public
+  // fake REST API used for demo purposes. In a real app, avoid sending
+  // secrets through fields NetSpy captures as plain body content — NetSpy
+  // redacts sensitive *headers*/*cookies* (see `sensitiveHeaders`), but
+  // request/response bodies are stored as-is. If you must capture calls
+  // that carry secrets in the body, prefer `persistent: false`, or scrub the
+  // field before sending it through a Dio instance NetSpy is attached to.
   Future<dynamic> createUser({
     required int id,
     required String userName,

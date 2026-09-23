@@ -64,6 +64,7 @@ class NetSpy {
       maxCalls: maxCalls,
       persistent: this.enabled && persistent,
       retentionPeriod: retentionPeriod,
+      sensitiveHeaders: sensitiveHeaders,
     );
     _interceptor = NetSpyInterceptor(_storage, enabled: this.enabled);
     _config = NetSpyConfig(

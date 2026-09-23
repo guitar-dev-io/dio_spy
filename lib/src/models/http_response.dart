@@ -1,3 +1,4 @@
+import '../utils/header_redactor.dart';
 import 'serialization.dart';
 
 class NetSpyHttpResponse {
@@ -25,4 +26,16 @@ class NetSpyHttpResponse {
         'body': jsonSafe(body),
         'headers': headers,
       };
+
+  /// Returns a copy with sensitive header values masked. See
+  /// [NetSpyHttpRequest.redacted] for why this exists.
+  NetSpyHttpResponse redacted(Set<String> sensitiveLower) {
+    return NetSpyHttpResponse()
+      ..status = status
+      ..time = time
+      ..size = size
+      ..body = body
+      ..headers = HeaderRedactor.redactMap(headers,
+          enabled: true, sensitiveLower: sensitiveLower);
+  }
 }

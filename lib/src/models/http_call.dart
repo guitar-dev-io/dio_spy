@@ -66,4 +66,23 @@ class NetSpyHttpCall {
         'response': response?.toJson(),
         'error': error?.toJson(),
       };
+
+  /// Returns a copy of this call with sensitive header/cookie values masked
+  /// on its request and response. Used before persisting to disk so stored
+  /// data never contains plaintext secrets, independent of the inspector's
+  /// (display-only) redaction toggle.
+  NetSpyHttpCall redacted(Set<String> sensitiveLower) {
+    final call = NetSpyHttpCall(id, createdTime: createdTime)
+      ..method = method
+      ..endpoint = endpoint
+      ..server = server
+      ..uri = uri
+      ..secure = secure
+      ..loading = loading
+      ..duration = duration
+      ..error = error;
+    call.request = request?.redacted(sensitiveLower);
+    call.response = response?.redacted(sensitiveLower);
+    return call;
+  }
 }

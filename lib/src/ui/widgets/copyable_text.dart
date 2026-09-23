@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../utils/clipboard_helper.dart';
+import '../../utils/share_helper.dart';
 import 'toast_overlay.dart';
 
 class CopyableText extends StatelessWidget {
@@ -22,6 +23,11 @@ class CopyableText extends StatelessWidget {
         ClipboardHelper.copy(text);
         NetSpyToast.show(context, toastMessage);
       },
+      // Clipboard sync across devices (e.g. simulator/emulator <-> Mac) isn't
+      // guaranteed by the OS, so long-press opens the native share sheet
+      // (AirDrop, Messages, etc.) as a reliable way to get text onto another
+      // device.
+      onLongPress: () => ShareHelper.shareText(text),
       behavior: HitTestBehavior.opaque,
       child: child,
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../utils/clipboard_helper.dart';
 import '../../utils/formatters.dart';
+import '../../utils/share_helper.dart';
 import '../theme.dart';
 import 'toast_overlay.dart';
 import 'package:json_visualizer/json_visualizer.dart';
@@ -55,15 +56,20 @@ class _RawBodyWidget extends StatelessWidget {
       children: [
         Align(
           alignment: Alignment.centerRight,
-          child: GestureDetector(
-            onTap: () {
-              ClipboardHelper.copy(formattedBody);
-              NetSpyToast.show(context);
-            },
-            child: const Padding(
-              padding: EdgeInsets.only(bottom: 4),
-              child: Icon(Icons.copy_rounded,
-                  size: 16, color: NetSpyColors.textTertiary),
+          child: Semantics(
+            label: 'Copy body. Long-press to share.',
+            button: true,
+            child: GestureDetector(
+              onTap: () {
+                ClipboardHelper.copy(formattedBody);
+                NetSpyToast.show(context);
+              },
+              onLongPress: () => ShareHelper.shareText(formattedBody),
+              child: const Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Icon(Icons.copy_rounded,
+                    size: 16, color: NetSpyColors.textTertiary),
+              ),
             ),
           ),
         ),
@@ -93,15 +99,20 @@ class _LargeBodyWidgetState extends State<_LargeBodyWidget> {
         children: [
           Align(
             alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: () {
-                ClipboardHelper.copy(widget.formattedBody);
-                NetSpyToast.show(context);
-              },
-              child: const Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Icon(Icons.copy_rounded,
-                    size: 16, color: NetSpyColors.textTertiary),
+            child: Semantics(
+              label: 'Copy body. Long-press to share.',
+              button: true,
+              child: GestureDetector(
+                onTap: () {
+                  ClipboardHelper.copy(widget.formattedBody);
+                  NetSpyToast.show(context);
+                },
+                onLongPress: () => ShareHelper.shareText(widget.formattedBody),
+                child: const Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Icon(Icons.copy_rounded,
+                      size: 16, color: NetSpyColors.textTertiary),
+                ),
               ),
             ),
           ),

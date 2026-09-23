@@ -137,19 +137,23 @@ class _NetSpyBubbleState extends State<_NetSpyBubble> {
                   Positioned(
                     left: pos.dx,
                     top: pos.dy,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: widget.netSpy.showInspector,
-                      onPanUpdate: (details) {
-                        final next = pos + details.delta;
-                        setState(() {
-                          _pos = Offset(
-                            next.dx.clamp(0.0, maxW - _size),
-                            next.dy.clamp(0.0, maxH - _size),
-                          );
-                        });
-                      },
-                      child: _buildBubble(),
+                    child: Semantics(
+                      label: 'Open network inspector',
+                      button: true,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: widget.netSpy.showInspector,
+                        onPanUpdate: (details) {
+                          final next = pos + details.delta;
+                          setState(() {
+                            _pos = Offset(
+                              next.dx.clamp(0.0, maxW - _size),
+                              next.dy.clamp(0.0, maxH - _size),
+                            );
+                          });
+                        },
+                        child: _buildBubble(),
+                      ),
                     ),
                   ),
                 ],

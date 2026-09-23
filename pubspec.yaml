@@ -2,7 +2,7 @@ name: net_spy
 description: A lightweight Dio HTTP inspector with clean minimal UI.
 homepage: https://github.com/7wilightxdev/net_spy
 repository: https://github.com/7wilightxdev/net_spy
-version: 0.0.5
+version: 0.0.6
 
 environment:
   sdk: ^3.0.0
@@ -24,3 +24,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  windows:
+  web:

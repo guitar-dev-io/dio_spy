@@ -19,6 +19,31 @@ class NetSpyInterceptor extends InterceptorsWrapper {
   /// When `false`, requests/responses pass through without being captured.
   final bool enabled;
 
+  /// Key used to stash a stable per-request correlation id in
+  /// [RequestOptions.extra]. `RequestOptions.hashCode` (the previous
+  /// correlation key) is an identity hash: if an app-level interceptor
+  /// retries a request with a cloned `RequestOptions`, the hash changes and
+  /// the response/error is silently orphaned, leaving the original entry
+  /// stuck in the "loading" state. A monotonic id stored in `extra` survives
+  /// `copyWith`/cloning because Dio carries `extra` along with the request.
+  static const String _idKey = '_netSpyRequestId';
+
+  int _nextId = 0;
+
+  int _idFor(RequestOptions options) {
+    final existing = options.extra[_idKey];
+    if (existing is int) return existing;
+    final id = _nextId++;
+    options.extra[_idKey] = id;
+    return id;
+  }
+
+  /// Maximum number of bytes kept for a captured request/response body.
+  /// Bodies larger than this are truncated before being stored, independent
+  /// of [NetSpyStorage.maxCalls], so a handful of large payloads (file
+  /// uploads/downloads) can't blow up memory or persisted storage size.
+  static const int maxBodyBytes = 200 * 1024; // 200 KB
+
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     if (!enabled) {
@@ -26,7 +51,7 @@ class NetSpyInterceptor extends InterceptorsWrapper {
       return;
     }
     try {
-      final call = NetSpyHttpCall(options.hashCode);
+      final call = NetSpyHttpCall(_idFor(options));
       call.method = options.method;
       call.endpoint = options.uri.path;
       call.server = options.uri.host;
@@ -71,10 +96,10 @@ class NetSpyInterceptor extends InterceptorsWrapper {
       httpResponse.headers = _parseResponseHeaders(response.headers);
 
       final data = response.data;
-      httpResponse.body = data ?? '';
       httpResponse.size = _safeBodySize(data);
+      httpResponse.body = _truncateBody(data, httpResponse.size);
 
-      _storage.addResponse(response.requestOptions.hashCode, httpResponse);
+      _storage.addResponse(_idFor(response.requestOptions), httpResponse);
     } catch (e) {
       debugPrint('[NetSpy] Error in onResponse: $e');
     }
@@ -90,7 +115,8 @@ class NetSpyInterceptor extends InterceptorsWrapper {
     try {
       final httpError =
           NetSpyHttpError(error: err.toString(), stackTrace: err.stackTrace);
-      _storage.addError(err.requestOptions.hashCode, httpError);
+      final id = _idFor(err.requestOptions);
+      _storage.addError(id, httpError);
 
       final httpResponse = NetSpyHttpResponse();
       httpResponse.time = DateTime.now();
@@ -98,14 +124,14 @@ class NetSpyInterceptor extends InterceptorsWrapper {
       if (err.response != null) {
         httpResponse.status = err.response?.statusCode;
         final data = err.response?.data;
-        httpResponse.body = data ?? '';
         httpResponse.size = _safeBodySize(data);
+        httpResponse.body = _truncateBody(data, httpResponse.size);
         httpResponse.headers = _parseResponseHeaders(err.response!.headers);
       } else {
         httpResponse.status = -1;
       }
 
-      _storage.addResponse(err.requestOptions.hashCode, httpResponse);
+      _storage.addResponse(id, httpResponse);
     } catch (e) {
       debugPrint('[NetSpy] Error in onError: $e');
     }
@@ -134,13 +160,13 @@ class NetSpyInterceptor extends InterceptorsWrapper {
           .toList();
       request.size = data.length;
     } else if (data is Map || data is List) {
-      request.body = data;
       // A body can contain values that are not JSON-encodable; fall back to a
       // best-effort size so an odd payload never drops the whole capture.
       request.size = _safeBodySize(data);
+      request.body = _truncateBody(data, request.size);
     } else if (data is String) {
-      request.body = data;
       request.size = utf8.encode(data).length;
+      request.body = _truncateBody(data, request.size);
     } else if (data is List<int>) {
       request.body = '[Binary data]';
       request.size = data.length;
@@ -148,9 +174,36 @@ class NetSpyInterceptor extends InterceptorsWrapper {
       request.body = '[Stream data]';
       request.size = 0;
     } else {
-      request.body = data.toString();
       request.size = _safeBodySize(data);
+      request.body = _truncateBody(data, request.size);
     }
+  }
+
+  /// Caps a captured body at [maxBodyBytes]. Maps/Lists are only truncated by
+  /// falling back to their (possibly truncated) string form; this keeps
+  /// memory and persisted-storage usage bounded per-call, independent of how
+  /// many calls [NetSpyStorage.maxCalls] allows.
+  dynamic _truncateBody(dynamic data, int size) {
+    if (data == null || size <= maxBodyBytes) return data;
+
+    final asString = data is String ? data : _bodyToDisplayString(data);
+    final bytes = utf8.encode(asString);
+    if (bytes.length <= maxBodyBytes) return asString;
+
+    final truncated =
+        utf8.decode(bytes.sublist(0, maxBodyBytes), allowMalformed: true);
+    return '$truncated\n… [truncated, ${_safeBodySize(data)} bytes total]';
+  }
+
+  String _bodyToDisplayString(dynamic data) {
+    if (data is Map || data is List) {
+      try {
+        return json.encode(data);
+      } catch (_) {
+        return data.toString();
+      }
+    }
+    return data.toString();
   }
 
   Map<String, dynamic> _parseQueryParameters(RequestOptions options) {

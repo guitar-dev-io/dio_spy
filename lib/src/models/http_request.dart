@@ -1,3 +1,4 @@
+import '../utils/header_redactor.dart';
 import 'form_data_models.dart';
 import 'serialization.dart';
 
@@ -32,8 +33,9 @@ class NetSpyHttpRequest {
 
     final fields = json['formDataFields'] as List?;
     if (fields != null) {
-      request.formDataFields =
-          fields.map((e) => NetSpyFormDataField.fromJson(dynamicMap(e))).toList();
+      request.formDataFields = fields
+          .map((e) => NetSpyFormDataField.fromJson(dynamicMap(e)))
+          .toList();
     }
 
     return request;
@@ -46,8 +48,29 @@ class NetSpyHttpRequest {
         'body': jsonSafe(body),
         'contentType': contentType,
         'cookies': cookies,
-        'queryParameters': queryParameters.map((k, v) => MapEntry(k, jsonSafe(v))),
+        'queryParameters':
+            queryParameters.map((k, v) => MapEntry(k, jsonSafe(v))),
         'formDataFiles': formDataFiles?.map((e) => e.toJson()).toList(),
         'formDataFields': formDataFields?.map((e) => e.toJson()).toList(),
       };
+
+  /// Returns a copy with sensitive header/cookie values masked.
+  ///
+  /// Used before writing calls to disk: the in-memory/UI redaction toggle is
+  /// a display convenience, but persisted data should never contain
+  /// plaintext secrets regardless of that toggle's state.
+  NetSpyHttpRequest redacted(Set<String> sensitiveLower) {
+    return NetSpyHttpRequest()
+      ..time = time
+      ..size = size
+      ..headers = HeaderRedactor.redactMap(headers,
+          enabled: true, sensitiveLower: sensitiveLower)
+      ..body = body
+      ..contentType = contentType
+      ..cookies = HeaderRedactor.redactCookies(cookies,
+          enabled: true, sensitiveLower: sensitiveLower)
+      ..queryParameters = queryParameters
+      ..formDataFiles = formDataFiles
+      ..formDataFields = formDataFields;
+  }
 }

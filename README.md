@@ -53,6 +53,13 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
+  net_spy: ^0.0.6
+```
+
+Or, if you're working from an unpublished checkout:
+
+```yaml
+dependencies:
   net_spy:
     git: https://github.com/7wilightxdev/net_spy.git
     # or, for a local/internal copy:
@@ -220,6 +227,15 @@ You can also flip redaction programmatically:
 NetSpy.config.redactSensitive.value = true;
 ```
 
+**Note:** the `redactHeaders`/`redactSensitive` toggle only affects what's shown
+in the UI and in generated cURL commands — it does not change what is
+captured in memory. Data written to disk (when `persistent: true`) is always
+redacted using `sensitiveHeaders`, regardless of the toggle, so secrets in
+headers/cookies are never persisted in plaintext. **Request/response bodies
+are not redacted** — avoid enabling `persistent: true` for flows where request
+or response bodies carry secrets (e.g. a login form's password field), or
+scrub those fields yourself before the call reaches Dio.
+
 ## Custom Title
 
 Rename the inspector to match your internal tooling:
@@ -244,7 +260,12 @@ When disabled, the interceptor passes requests through untouched and
 ## Limitations
 
 - **No Network Modification** - This is a monitoring tool only, it doesn't modify requests
-- **Persistence Size** - Stored data is bounded by `maxCalls`; very large response bodies increase storage usage
+- **Persistence Size** - Stored data is bounded by `maxCalls`. Individual request/response
+  bodies are truncated at 200 KB before being stored (in memory and on disk) so a single
+  large upload/download can't blow up memory or `shared_preferences` usage.
+- **Body Redaction** - Only headers/cookies are redactable. Request/response bodies are
+  captured as-is; don't rely on NetSpy to keep secrets embedded in a body out of persisted
+  storage. See [Header Redaction](#header-redaction) for details.
 
 ## Contributing
 
