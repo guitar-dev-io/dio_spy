@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.7] - 2026-09-24
+
+### Fixes
+
+- Captured calls are now de-duplicated by their correlation id in
+  `NetSpyStorage.addCall`. If the interceptor's `onRequest` fires more than
+  once for a single request (e.g. NetSpy attached to multiple `Dio` instances
+  the request flows through, or added to the same `Dio` twice), the inspector
+  no longer shows two entries for one request — one request always maps to
+  exactly one entry.
+
 ## [0.0.6] - 2026-09-23
 
 ### Security
