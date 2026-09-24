@@ -76,6 +76,34 @@ class NetSpyFormatters {
     return false;
   }
 
+  /// Recursively converts [body] into a structure the interactive JSON viewer
+  /// can consume, where every map is a `Map<String, dynamic>` and every list is
+  /// a `List<dynamic>`.
+  ///
+  /// `JsonVisualizer` hard-casts map values with `as Map<String, dynamic>`,
+  /// which throws for a `Map<dynamic, dynamic>` / `Map<String, Object?>` or a
+  /// nested map with non-`String` keys — shapes Dio commonly produces. This
+  /// returns `null` when the body can't be represented that way (e.g. a map
+  /// with non-`String` keys), signalling the caller to fall back to raw text.
+  static dynamic normalizeForVisualizer(dynamic body) {
+    if (body == null || body is String || body is num || body is bool) {
+      return body;
+    }
+    if (body is Map) {
+      final result = <String, dynamic>{};
+      for (final entry in body.entries) {
+        if (entry.key is! String) return null;
+        result[entry.key as String] = normalizeForVisualizer(entry.value);
+      }
+      return result;
+    }
+    if (body is List) {
+      return body.map(normalizeForVisualizer).toList();
+    }
+    // Any other type isn't something the viewer can render safely.
+    return null;
+  }
+
   static String formatStatusCode(int? statusCode) {
     if (statusCode == null || statusCode == -1) return 'Error';
     return statusCode.toString();

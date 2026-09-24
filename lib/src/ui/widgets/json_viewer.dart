@@ -28,14 +28,22 @@ class JsonViewer extends StatelessWidget {
     }
 
     // The interactive visualizer walks and encodes the raw body, which throws
-    // if it holds a non-encodable value (e.g. a Color). Only use it for bodies
-    // we know are JSON-safe, otherwise fall back to the formatted text.
+    // if it holds a non-encodable value (e.g. a Color). It also hard-casts maps
+    // to `Map<String, dynamic>`, so a `Map<dynamic, dynamic>` or a map with
+    // non-String keys (both common from Dio) would crash it. Only use it for
+    // bodies we know are JSON-safe, and normalize the value into the exact
+    // shape the viewer expects; otherwise fall back to the formatted text.
     if (!NetSpyFormatters.isJsonEncodable(body)) {
       return _RawBodyWidget(formattedBody: formatted);
     }
 
+    final normalized = NetSpyFormatters.normalizeForVisualizer(body);
+    if (normalized is! Map && normalized is! List) {
+      return _RawBodyWidget(formattedBody: formatted);
+    }
+
     return JsonVisualizer(
-      data: body,
+      data: normalized,
       expandDepth: 3,
       fontSize: 14,
       onCopied: () => NetSpyToast.show(context),
