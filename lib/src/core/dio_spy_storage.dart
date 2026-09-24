@@ -59,6 +59,13 @@ class NetSpyStorage {
 
   void addCall(NetSpyHttpCall call) {
     final list = List<NetSpyHttpCall>.from(_calls.value);
+    // Guard against duplicate captures of the same request. This happens when
+    // the interceptor runs `onRequest` more than once for a single request —
+    // e.g. the interceptor is attached to more than one Dio the call flows
+    // through, or added to the same Dio twice. Since the correlation id is
+    // stable (stored in RequestOptions.extra), we can safely drop the repeat
+    // so one request always maps to exactly one entry.
+    if (list.any((c) => c.id == call.id)) return;
     list.insert(0, call);
     _pruneExpired(list);
     if (list.length > maxCalls) {
