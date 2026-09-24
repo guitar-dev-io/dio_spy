@@ -19,9 +19,11 @@ class CopyableText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        ClipboardHelper.copy(text);
-        NetSpyToast.show(context, toastMessage);
+      onTap: () async {
+        await ClipboardHelper.copy(text);
+        if (context.mounted) {
+          NetSpyToast.show(context, toastMessage);
+        }
       },
       // Clipboard sync across devices (e.g. simulator/emulator <-> Mac) isn't
       // guaranteed by the OS, so long-press opens the native share sheet

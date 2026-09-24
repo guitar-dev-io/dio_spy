@@ -68,9 +68,11 @@ class _RawBodyWidget extends StatelessWidget {
             label: 'Copy body. Long-press to share.',
             button: true,
             child: GestureDetector(
-              onTap: () {
-                ClipboardHelper.copy(formattedBody);
-                NetSpyToast.show(context);
+              onTap: () async {
+                await ClipboardHelper.copy(formattedBody);
+                if (context.mounted) {
+                  NetSpyToast.show(context);
+                }
               },
               onLongPress: () => ShareHelper.shareText(formattedBody),
               child: const Padding(
@@ -111,9 +113,11 @@ class _LargeBodyWidgetState extends State<_LargeBodyWidget> {
               label: 'Copy body. Long-press to share.',
               button: true,
               child: GestureDetector(
-                onTap: () {
-                  ClipboardHelper.copy(widget.formattedBody);
-                  NetSpyToast.show(context);
+                onTap: () async {
+                  await ClipboardHelper.copy(widget.formattedBody);
+                  if (context.mounted) {
+                    NetSpyToast.show(context);
+                  }
                 },
                 onLongPress: () => ShareHelper.shareText(widget.formattedBody),
                 child: const Padding(

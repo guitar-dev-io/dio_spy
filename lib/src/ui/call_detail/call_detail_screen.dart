@@ -22,7 +22,8 @@ class CallDetailScreen extends StatefulWidget {
 
 class _CallDetailScreenState extends State<CallDetailScreen> {
   NetSpyConfig? _fallbackConfig;
-  NetSpyConfig get _config => widget.config ?? (_fallbackConfig ??= NetSpyConfig());
+  NetSpyConfig get _config =>
+      widget.config ?? (_fallbackConfig ??= NetSpyConfig());
 
   Set<String>? get _activeRedaction =>
       _config.redactSensitive.value ? _config.sensitiveHeaders : null;
@@ -33,7 +34,6 @@ class _CallDetailScreenState extends State<CallDetailScreen> {
     super.dispose();
   }
 
-  
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -59,10 +59,13 @@ class _CallDetailScreenState extends State<CallDetailScreen> {
         IconButton(
           icon: const Icon(Icons.copy_rounded),
           tooltip: 'Copy as cURL',
-          onPressed: () {
-            final curl = CurlBuilder.build(widget.call, redactHeaders: _activeRedaction);
-            ClipboardHelper.copy(curl);
-            NetSpyToast.show(context, 'cURL copied');
+          onPressed: () async {
+            final curl =
+                CurlBuilder.build(widget.call, redactHeaders: _activeRedaction);
+            await ClipboardHelper.copy(curl);
+            if (context.mounted) {
+              NetSpyToast.show(context, 'cURL copied');
+            }
           },
         ),
         IconButton(
