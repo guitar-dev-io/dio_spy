@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../ui/call_list/call_list_screen.dart';
 import '../ui/theme.dart';

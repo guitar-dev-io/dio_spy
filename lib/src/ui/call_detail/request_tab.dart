@@ -1,5 +1,5 @@
 import 'package:net_spy/src/ui/widgets/method_chip.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../../core/dio_spy_config.dart';
 import '../../models/http_call.dart';

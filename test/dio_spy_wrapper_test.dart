@@ -1,7 +1,7 @@
 import 'package:net_spy/net_spy.dart';
 import 'package:net_spy/src/core/dio_spy_storage.dart';
 import 'package:net_spy/src/ui/call_list/call_list_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
