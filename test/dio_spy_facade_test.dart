@@ -103,11 +103,11 @@ void main() {
 
         expect(
           () => netSpy.inspectorVisible.addListener(() {}),
-          throwsFlutterError,
+          throwsA(isA<Error>()),
         );
         expect(
           () => netSpy.config.redactSensitive.addListener(() {}),
-          throwsFlutterError,
+          throwsA(isA<Error>()),
         );
       });
 
