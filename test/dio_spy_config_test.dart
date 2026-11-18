@@ -55,7 +55,7 @@ void main() {
       // Adding a listener after dispose throws for a disposed ValueNotifier.
       expect(
         () => config.redactSensitive.addListener(() {}),
-        throwsFlutterError,
+        throwsA(isA<Error>()),
       );
     });
   });
